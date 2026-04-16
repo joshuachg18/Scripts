@@ -1,4 +1,5 @@
 ﻿#!/bin/bash
+# You can use this script format to add other applications to your dock as well
 
 /usr/local/bin/dockutil --add '/Applications/Self Service.app' --after 'Finder' --no-restart
 /usr/local/bin/dockutil --add '/Applications/Google Chrome.app' --replacing 'Safari'
