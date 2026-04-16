@@ -1,0 +1,75 @@
+﻿#!/bin/bash
+
+# 1. Identify the logged-in user
+currentUser=$(stat -f "%Su" /dev/console)
+userHome="/Users/$currentUser"
+chromeDir="$userHome/Library/Application Support/Google/Chrome/Default"
+chromeCacheDir="$userHome/Library/Caches/Google/Chrome"
+jamfHelper="/Library/Application Support/JAMF/bin/jamfHelper.app/Contents/MacOS/jamfHelper"
+
+# 2. Display the warning message to the user
+# This creates a pop-up they must click 'OK' on before the script continues.
+description="You will be signed out of most websites and your browsing history will be cleared, but your saved passwords will remain safe. 
+
+Google Chrome will be forced to quit to complete this action. Please save any open work."
+
+userChoice=$("$jamfHelper" -windowType utility -title "Chrome Maintenance" -description "$description" -button1 "OK" -button2 "Cancel" -defaultButton 1 -icon "/Applications/Google Chrome.app/Contents/Resources/document.icns")
+
+# If the user clicks "Cancel" (exit code 2), stop the script
+if [ "$userChoice" == "2" ]; then
+    echo "User cancelled the operation."
+    exit 0
+fi
+
+echo "Starting targeted Chrome cleanup for $currentUser..."
+
+# 3. FORCE QUIT Google Chrome
+# We use 'killall' to ensure all Chrome processes are terminated immediately
+if pgrep -x "Google Chrome" > /dev/null; then
+    echo "Force quitting Google Chrome..."
+    killall "Google Chrome"
+    sleep 2
+fi
+
+# 4. Clear the main Cache folder (Cached images and files)
+if [ -d "$chromeCacheDir" ]; then
+    rm -rf "$chromeCacheDir"/*
+    echo "Done: Cached images and files."
+fi
+
+# 5. Target specific files in the Profile (Cookies, History, Downloads)
+targets=(
+    "Cookies"
+    "Cookies-journal"
+    "History"
+    "History-journal"
+    "Download Service"
+    "Visited Links"
+    "Web Data"
+    "Web Data-journal"
+)
+
+for item in "${targets[@]}"; do
+    if [ -f "$chromeDir/$item" ]; then
+        rm -f "$chromeDir/$item"
+        echo "Done: Removed $item"
+    fi
+done
+
+# 6. Clear Site Data (IndexedDB, Local Storage, etc.)
+siteDataFolders=(
+    "IndexedDB"
+    "Local Storage"
+    "Session Storage"
+    "Storage"
+)
+
+for folder in "${siteDataFolders[@]}"; do
+    if [ -d "$chromeDir/$folder" ]; then
+        rm -rf "$chromeDir/$folder"/*
+        echo "Done: Cleared $folder"
+    fi
+done
+
+echo "Cleanup complete."
+exit 0
