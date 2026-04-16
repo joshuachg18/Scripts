@@ -1,0 +1,4 @@
+﻿#!/bin/bash
+
+/usr/local/bin/dockutil --add '/Applications/Self Service.app' --after 'Finder' --no-restart
+/usr/local/bin/dockutil --add '/Applications/Google Chrome.app' --replacing 'Safari'

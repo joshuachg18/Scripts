@@ -1,0 +1,7 @@
+﻿#!/bin/sh
+
+# This command resets the screencapture utility
+sudo tccutil reset ScreenCapture com.google.Chrome
+# These Commands clear up and stale requests
+defaults delete com.google.Chrome PurgeStaleScreenCapturePermissionSuccessEarly2022Success
+defaults delete com.google.Chrome PurgeStaleScreenCapturePermissionSuccessEarly2022Attempts
